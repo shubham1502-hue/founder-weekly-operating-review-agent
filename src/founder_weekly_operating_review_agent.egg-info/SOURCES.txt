@@ -1,0 +1,15 @@
+LICENSE
+README.md
+pyproject.toml
+src/founder_weekly_operating_review_agent.egg-info/PKG-INFO
+src/founder_weekly_operating_review_agent.egg-info/SOURCES.txt
+src/founder_weekly_operating_review_agent.egg-info/dependency_links.txt
+src/founder_weekly_operating_review_agent.egg-info/entry_points.txt
+src/founder_weekly_operating_review_agent.egg-info/top_level.txt
+src/founder_weekly_review/__init__.py
+src/founder_weekly_review/__main__.py
+src/founder_weekly_review/analysis.py
+src/founder_weekly_review/cli.py
+src/founder_weekly_review/metrics.py
+src/founder_weekly_review/reporting.py
+tests/test_analysis.py

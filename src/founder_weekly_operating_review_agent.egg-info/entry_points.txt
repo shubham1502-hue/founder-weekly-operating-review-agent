@@ -1,0 +1,2 @@
+[console_scripts]
+founder-weekly-review = founder_weekly_review.cli:main

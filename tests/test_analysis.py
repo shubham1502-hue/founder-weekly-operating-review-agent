@@ -27,11 +27,31 @@ class WeeklyReviewTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             out_dir = Path(tmp)
             write_outputs(result, out_dir)
-            self.assertTrue((out_dir / "weekly_operating_review.md").exists())
-            self.assertTrue((out_dir / "investor_safe_update.md").exists())
+
+            weekly_review = out_dir / "weekly_operating_review.md"
+            investor_update = out_dir / "investor_safe_update.md"
+
+            self.assertTrue(weekly_review.exists())
+            self.assertTrue(investor_update.exists())
             self.assertTrue((out_dir / "team_asks.md").exists())
             self.assertTrue((out_dir / "next_week_plan.md").exists())
             self.assertTrue((out_dir / "analysis.json").exists())
+
+            review_text = weekly_review.read_text()
+            investor_text = investor_update.read_text()
+
+            # Founder-facing weekly review sections
+            self.assertIn("Executive Summary", review_text)
+            self.assertIn("Metrics Snapshot", review_text)
+            self.assertIn("Risks", review_text)
+            self.assertIn("Priorities", review_text)
+            self.assertIn("Team Asks", review_text)
+
+            # Investor-safe update content
+            self.assertTrue(
+                "Investor-Safe Summary" in investor_text
+                or "Investor Update" in investor_text
+            )
 
 
 if __name__ == "__main__":
