@@ -76,6 +76,7 @@ After:
 
 - Run `python -m pip install -e .`.
 - Run `PYTHONPATH=src python3 -m founder_weekly_review --metrics examples/weekly_metrics.csv --context examples/company_context.md --out outputs/demo`.
+- Optional: override risk thresholds with `--config examples/thresholds.json`. Missing values fall back to defaults.
 - Open `docs/sample_weekly_operating_review.md` first to inspect the committed demo. After running the command, open `outputs/demo/weekly_operating_review.md` locally.
 
 ## How to fork and use this for your company

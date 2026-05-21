@@ -2,7 +2,7 @@ from pathlib import Path
 import tempfile
 import unittest
 
-from founder_weekly_review.analysis import analyze
+from founder_weekly_review.analysis import analyze, merge_thresholds
 from founder_weekly_review.metrics import load_metrics
 from founder_weekly_review.reporting import write_outputs
 
@@ -19,6 +19,23 @@ class WeeklyReviewTests(unittest.TestCase):
         self.assertGreater(result["deltas"]["mrr_growth"], 0)
         self.assertGreaterEqual(len(result["risks"]), 1)
         self.assertGreaterEqual(len(result["priorities"]), 1)
+
+    def test_custom_thresholds_override_defaults(self):
+        metrics = load_metrics(ROOT / "examples" / "weekly_metrics.csv")
+        default_result = analyze(metrics)
+        custom_result = analyze(metrics, thresholds={"nps_medium_risk": 60})
+
+        default_areas = {risk["area"] for risk in default_result["risks"]}
+        custom_areas = {risk["area"] for risk in custom_result["risks"]}
+
+        self.assertNotIn("customer sentiment", default_areas)
+        self.assertIn("customer sentiment", custom_areas)
+
+    def test_missing_threshold_values_fall_back_to_defaults(self):
+        thresholds = merge_thresholds({"nps_medium_risk": 60})
+
+        self.assertEqual(thresholds["nps_medium_risk"], 60)
+        self.assertEqual(thresholds["runway_months_high_risk"], 6)
 
     def test_writes_expected_outputs(self):
         metrics = load_metrics(ROOT / "examples" / "weekly_metrics.csv")

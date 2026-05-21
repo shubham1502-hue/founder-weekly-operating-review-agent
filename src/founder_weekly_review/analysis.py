@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import asdict
+from typing import Any
 
 from .metrics import WeeklyMetrics
 
@@ -23,9 +24,32 @@ def percent(value: float) -> str:
     return f"{value:.1%}"
 
 
-def analyze(metrics: list[WeeklyMetrics], context: str = "") -> dict:
+DEFAULT_THRESHOLDS = {
+    "runway_months_high_risk": 6,
+    "churn_rate_medium_risk": 0.06,
+    "activation_drop_medium_risk": -0.03,
+    "support_ticket_growth_medium_risk": 0.15,
+    "nps_medium_risk": 30,
+    "product_issues_activation_focus": 30,
+    "pipeline_growth_priority": 0.1,
+    "support_tickets_ops_escalation": 120,
+}
+
+def merge_thresholds(overrides: dict[str, Any] | None = None) -> dict[str, float]:
+    thresholds = DEFAULT_THRESHOLDS.copy()
+    if not overrides:
+        return thresholds
+    unknown = sorted(set(overrides) - set(DEFAULT_THRESHOLDS))
+    if unknown:
+        raise ValueError(f"Unknown threshold keys: {', '.join(unknown)}")
+    thresholds.update({key: float(value) for key, value in overrides.items()})
+    return thresholds
+
+def analyze(metrics: list[WeeklyMetrics], context: str = "", thresholds: dict[str, Any] | None = None) -> dict:
     if len(metrics) < 2:
         raise ValueError("At least two weeks of metrics are required.")
+
+    thresholds = merge_thresholds(thresholds)
 
     previous = metrics[-2]
     latest = metrics[-1]
@@ -51,9 +75,9 @@ def analyze(metrics: list[WeeklyMetrics], context: str = "") -> dict:
         "pipeline_to_monthly_burn": pipeline_to_burn,
     }
 
-    risks = build_risks(latest, previous, deltas)
-    priorities = build_priorities(latest, deltas, risks)
-    team_asks = build_team_asks(latest, deltas, risks)
+    risks = build_risks(latest, previous, deltas, thresholds)
+    priorities = build_priorities(latest, deltas, risks, thresholds)
+    team_asks = build_team_asks(latest, deltas, risks, thresholds)
 
     return {
         "context": context.strip(),
@@ -82,7 +106,7 @@ def build_headline(latest: WeeklyMetrics, deltas: dict[str, float], risks: list[
     return f"{latest.week}: metrics are directionally healthy and execution should stay focused."
 
 
-def build_risks(latest: WeeklyMetrics, previous: WeeklyMetrics, deltas: dict[str, float]) -> list[dict]:
+def build_risks(latest: WeeklyMetrics, previous: WeeklyMetrics, deltas: dict[str, float], thresholds: dict[str, float]) -> list[dict]:
     risks: list[dict] = []
     if latest.runway_months < 6:
         risks.append(
@@ -93,7 +117,7 @@ def build_risks(latest: WeeklyMetrics, previous: WeeklyMetrics, deltas: dict[str
                 "why_it_matters": "The company needs tighter prioritization before fundraising pressure increases.",
             }
         )
-    if deltas["churn_rate"] > 0.06:
+    if deltas["churn_rate"] > thresholds["churn_rate_medium_risk"]:
         risks.append(
             {
                 "severity": "medium",
@@ -102,7 +126,7 @@ def build_risks(latest: WeeklyMetrics, previous: WeeklyMetrics, deltas: dict[str
                 "why_it_matters": "Growth quality is weaker if new revenue is offset by preventable churn.",
             }
         )
-    if deltas["activation_delta"] < -0.03:
+    if deltas["activation_delta"] < thresholds["activation_drop_medium_risk"]:
         risks.append(
             {
                 "severity": "medium",
@@ -111,7 +135,7 @@ def build_risks(latest: WeeklyMetrics, previous: WeeklyMetrics, deltas: dict[str
                 "why_it_matters": "Lower activation will reduce downstream conversion and customer expansion.",
             }
         )
-    if deltas["support_ticket_growth"] > 0.15:
+    if deltas["support_ticket_growth"] > thresholds["support_ticket_growth_medium_risk"]:
         risks.append(
             {
                 "severity": "medium",
@@ -120,7 +144,7 @@ def build_risks(latest: WeeklyMetrics, previous: WeeklyMetrics, deltas: dict[str
                 "why_it_matters": "Support load can slow onboarding and reduce founder-led GTM quality.",
             }
         )
-    if latest.nps < 30:
+    if latest.nps < thresholds["nps_medium_risk"]:
         risks.append(
             {
                 "severity": "medium",
@@ -132,7 +156,7 @@ def build_risks(latest: WeeklyMetrics, previous: WeeklyMetrics, deltas: dict[str
     return risks
 
 
-def build_priorities(latest: WeeklyMetrics, deltas: dict[str, float], risks: list[dict]) -> list[str]:
+def build_priorities(latest: WeeklyMetrics, deltas: dict[str, float], risks: list[dict], thresholds: dict[str, float]) -> list[str]:
     priorities: list[str] = []
     risk_areas = {risk["area"] for risk in risks}
 
@@ -140,9 +164,9 @@ def build_priorities(latest: WeeklyMetrics, deltas: dict[str, float], risks: lis
         priorities.append("Cut or delay non-critical spend and define the next fundraising-readiness milestone.")
     if "retention" in risk_areas:
         priorities.append("Run a churn review on the latest lost accounts and create a save playbook for at-risk customers.")
-    if "activation" in risk_areas or latest.product_issues_open > 30:
+    if "activation" in risk_areas or latest.product_issues_open > thresholds["product_issues_activation_focus"]:
         priorities.append("Make activation recovery the product focus: fix onboarding blockers and reduce open product issues.")
-    if deltas["pipeline_growth"] > 0.1:
+    if deltas["pipeline_growth"] > thresholds["pipeline_growth_priority"]:
         priorities.append("Convert pipeline quality into booked meetings and identify which segment is producing qualified demand.")
     if not priorities:
         priorities.append("Keep the weekly operating focus on compounding the current growth motion.")
@@ -150,7 +174,7 @@ def build_priorities(latest: WeeklyMetrics, deltas: dict[str, float], risks: lis
     return priorities[:4]
 
 
-def build_team_asks(latest: WeeklyMetrics, deltas: dict[str, float], risks: list[dict]) -> list[dict]:
+def build_team_asks(latest: WeeklyMetrics, deltas: dict[str, float], risks: list[dict], thresholds: dict[str, float]) -> list[dict]:
     asks = [
         {
             "team": "GTM",
@@ -165,7 +189,7 @@ def build_team_asks(latest: WeeklyMetrics, deltas: dict[str, float], risks: list
             "ask": "Reforecast runway using current burn and decide which spend is mandatory for next week's plan.",
         },
     ]
-    if latest.support_tickets_open > 120:
+    if latest.support_tickets_open > thresholds["support_tickets_ops_escalation"]:
         asks.append(
             {
                 "team": "Support/Ops",
