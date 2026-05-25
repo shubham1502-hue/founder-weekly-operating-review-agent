@@ -42,6 +42,7 @@ class WeeklyReviewTests(unittest.TestCase):
             out_dir = Path(tmp)
             write_outputs(result, out_dir)
             self.assertTrue((out_dir / "weekly_operating_review.md").exists())
+            self.assertTrue((out_dir / "weekly_operating_review.html").exists())
             self.assertTrue((out_dir / "investor_safe_update.md").exists())
             self.assertTrue((out_dir / "team_asks.md").exists())
             self.assertTrue((out_dir / "next_week_plan.md").exists())
