@@ -13,8 +13,12 @@ def write_outputs(analysis: dict, out_dir: Path) -> None:
     (out_dir / "weekly_operating_review.html").write_text(render_weekly_review_html(analysis), encoding="utf-8")
     (out_dir / "investor_safe_update.md").write_text(render_investor_update(analysis), encoding="utf-8")
     (out_dir / "team_asks.md").write_text(render_team_asks(analysis), encoding="utf-8")
-    (out_dir / "next_week_plan.md").write_text(render_next_week_plan(analysis), encoding="utf-8")
-    (out_dir / "analysis.json").write_text(json.dumps(analysis, indent=2), encoding="utf-8")
+    (out_dir / "next_week_plan.md").write_text(
+        render_next_week_plan(analysis), encoding="utf-8"
+    )
+    (out_dir / "analysis.json").write_text(
+        json.dumps(analysis, indent=2), encoding="utf-8"
+    )
 
 
 def render_weekly_review(analysis: dict) -> str:
@@ -23,7 +27,7 @@ def render_weekly_review(analysis: dict) -> str:
     lines = [
         f"# Weekly Operating Review: {latest['week']}",
         "",
-        f"## Headline",
+        "## Headline",
         "",
         analysis["headline"],
         "",
@@ -44,15 +48,22 @@ def render_weekly_review(analysis: dict) -> str:
     ]
     if analysis["risks"]:
         for risk in analysis["risks"]:
-            lines.append(f"- **{risk['severity'].title()} - {risk['area'].title()}:** {risk['risk']} {risk['why_it_matters']}")
+            lines.append(
+                f"- **{risk['severity'].title()} - {risk['area'].title()}:** {risk['risk']} {risk['why_it_matters']}"
+            )
     else:
         lines.append("- No material operating risk triggered this week.")
 
     lines.extend(["", "## Priorities", ""])
-    lines.extend(f"{index}. {priority}" for index, priority in enumerate(analysis["priorities"], start=1))
+    lines.extend(
+        f"{index}. {priority}"
+        for index, priority in enumerate(analysis["priorities"], start=1)
+    )
     lines.extend(["", "## Team Asks", ""])
     lines.extend(f"- **{ask['team']}:** {ask['ask']}" for ask in analysis["team_asks"])
-    lines.extend(["", "## Investor-Safe Summary", "", analysis["investor_safe_summary"], ""])
+    lines.extend(
+        ["", "## Investor-Safe Summary", "", analysis["investor_safe_summary"], ""]
+    )
     return "\n".join(lines)
 
 
@@ -154,7 +165,10 @@ def render_next_week_plan(analysis: dict) -> str:
         "## Focus",
         "",
     ]
-    lines.extend(f"{index}. {priority}" for index, priority in enumerate(analysis["priorities"], start=1))
+    lines.extend(
+        f"{index}. {priority}"
+        for index, priority in enumerate(analysis["priorities"], start=1)
+    )
     lines.extend(
         [
             "",

@@ -1,0 +1,7 @@
+{
+  "runway_months": 3,
+  "churn_rate": 0.1,
+  "activation_drop": 0.05,
+  "support_growth": 0.15,
+  "nps": 20
+}

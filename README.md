@@ -276,9 +276,10 @@ git clone https://github.com/shubham1502-hue/founder-weekly-operating-review-age
 cd founder-weekly-operating-review-agent
 
 python3 -m founder_weekly_review \
- --metrics examples/weekly_metrics.csv \
- --context examples/company_context.md \
- --out outputs/demo
+  --metrics examples/weekly_metrics.csv \
+  --context examples/company_context.md \
+  --out outputs/demo \
+  --config examples/thresholds.json
 ```
 
 Then open the local generated outputs:
@@ -288,6 +289,22 @@ Then open the local generated outputs:
 - `outputs/demo/team_asks.md`
 - `outputs/demo/next_week_plan.md`
 - `outputs/demo/analysis.json`
+
+## Custom Risk Thresholds
+
+You can override the default risk thresholds by passing a JSON config file via the `--config` argument.
+
+Example JSON (`examples/thresholds.json`):
+
+```json
+{
+  "runway_months": 10,
+  "churn_rate": 0.05,
+  "activation_drop": 0.01,
+  "support_growth": 0.05,
+  "nps": 25
+}
+```
 
 ## Demo Output Preview
 
