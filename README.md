@@ -76,6 +76,7 @@ After:
 
 - Run `python -m pip install -e .`.
 - Run `PYTHONPATH=src python3 -m founder_weekly_review --metrics examples/weekly_metrics.csv --context examples/company_context.md --out outputs/demo`.
+- Or use a published Google Sheets CSV export URL: `PYTHONPATH=src python3 -m founder_weekly_review --google-sheet-csv-url "https://docs.google.com/spreadsheets/d/<sheet-id>/export?format=csv&gid=<tab-id>" --context examples/company_context.md --out outputs/demo`. Publish the sheet to the web as CSV first, keep the same columns as `examples/weekly_metrics.csv`, and do not put private company data in a public sheet.
 - Open `docs/sample_weekly_operating_review.md` first to inspect the committed demo. After running the command, open `outputs/demo/weekly_operating_review.md` locally.
 
 ## How to fork and use this for your company

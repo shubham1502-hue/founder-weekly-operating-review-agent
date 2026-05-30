@@ -1,8 +1,10 @@
 from __future__ import annotations
 
 import csv
+import io
 from dataclasses import dataclass
 from pathlib import Path
+from urllib.request import urlopen
 
 
 @dataclass(frozen=True)
@@ -43,7 +45,17 @@ def _int(row: dict[str, str], key: str) -> int:
 
 def load_metrics(path: Path) -> list[WeeklyMetrics]:
     with path.open(newline="", encoding="utf-8") as handle:
-        rows = list(csv.DictReader(handle))
+        return parse_metrics_csv(handle)
+
+
+def load_metrics_from_url(url: str) -> list[WeeklyMetrics]:
+    with urlopen(url, timeout=20) as response:
+        payload = response.read().decode("utf-8-sig")
+    return parse_metrics_csv(io.StringIO(payload))
+
+
+def parse_metrics_csv(handle) -> list[WeeklyMetrics]:
+    rows = list(csv.DictReader(handle))
 
     if len(rows) < 2:
         raise ValueError("At least two weeks of metrics are required.")
